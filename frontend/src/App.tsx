@@ -1,7 +1,8 @@
 import BookList from './components/BookList';
+import BookManagement from './components/admin/BookManagement';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useEffect } from 'react';
 
 // Import Bootstrap icons
@@ -24,6 +25,18 @@ function App() {
                 <h1>Online Bookstore</h1>
                 <p className="lead mb-0">Browse our collection of books</p>
               </div>
+              <div className="col-auto">
+                <nav className="navbar navbar-expand navbar-dark">
+                  <ul className="navbar-nav">
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/">Home</Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin/books">Manage Books</Link>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
             </div>
           </div>
         </header>
@@ -31,6 +44,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<BookList />} />
+            <Route path="/admin/books" element={<BookManagement />} />
             <Route path="*" element={<BookList />} />
           </Routes>
         </main>

@@ -302,3 +302,77 @@ export const getBookById = async (id: number): Promise<Book> => {
   if (book) return Promise.resolve(book);
   throw new Error('Book not found in mock data');
 };
+
+// Function to add a new book
+export const addBook = async (book: Omit<Book, 'bookId'>): Promise<Book> => {
+  if (!useMockData) {
+    try {
+      const apiUrl = await findWorkingApiEndpoint();
+      const response = await axios.post<Book>(`${apiUrl}/Books`, book);
+      console.log('Book added successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding book:', error);
+      throw error;
+    }
+  }
+  
+  // Mock implementation for adding a book
+  const mockBooks = createMockBooks();
+  const newId = Math.max(...mockBooks.books.map(b => b.bookId)) + 1;
+  const newBook = { ...book, bookId: newId } as Book;
+  console.log('Added book to mock data:', newBook);
+  return Promise.resolve(newBook);
+};
+
+// Function to update an existing book
+export const updateBook = async (id: number, book: Book): Promise<void> => {
+  if (id !== book.bookId) {
+    throw new Error('Book ID in URL does not match book ID in data');
+  }
+  
+  if (!useMockData) {
+    try {
+      const apiUrl = await findWorkingApiEndpoint();
+      await axios.put(`${apiUrl}/Books/${id}`, book);
+      console.log(`Book with ID ${id} updated successfully`);
+      return;
+    } catch (error) {
+      console.error(`Error updating book with ID ${id}:`, error);
+      throw error;
+    }
+  }
+  
+  // Mock implementation for updating a book
+  const mockBooks = createMockBooks();
+  const bookExists = mockBooks.books.some(b => b.bookId === id);
+  if (!bookExists) {
+    throw new Error(`Book with ID ${id} not found in mock data`);
+  }
+  console.log(`Updated book in mock data: ${id}`);
+  return Promise.resolve();
+};
+
+// Function to delete a book
+export const deleteBook = async (id: number): Promise<void> => {
+  if (!useMockData) {
+    try {
+      const apiUrl = await findWorkingApiEndpoint();
+      await axios.delete(`${apiUrl}/Books/${id}`);
+      console.log(`Book with ID ${id} deleted successfully`);
+      return;
+    } catch (error) {
+      console.error(`Error deleting book with ID ${id}:`, error);
+      throw error;
+    }
+  }
+  
+  // Mock implementation for deleting a book
+  const mockBooks = createMockBooks();
+  const bookExists = mockBooks.books.some(b => b.bookId === id);
+  if (!bookExists) {
+    throw new Error(`Book with ID ${id} not found in mock data`);
+  }
+  console.log(`Deleted book from mock data: ${id}`);
+  return Promise.resolve();
+};

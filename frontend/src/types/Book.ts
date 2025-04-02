@@ -25,7 +25,6 @@ export interface PagedBookResult {
 export interface CartItem {
   book: Book;
   quantity: number;
-  subtotal: number;
 }
 
 // Create shopping cart model
