@@ -9,7 +9,7 @@ const BookManagement = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   
   // Edit/Add modal state
