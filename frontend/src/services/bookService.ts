@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { Book, PagedBookResult } from '../types/Book';
 
-// List of possible API endpoints to try in order
-const API_ENDPOINTS = [
+// Azure deployed API endpoint
+const AZURE_API_ENDPOINT = 'https://bookstoreapp-mcconkie-backend.azurewebsites.net/api';
+
+// List of fallback API endpoints to try in order (if Azure is temporarily unavailable)
+const FALLBACK_API_ENDPOINTS = [
   'http://localhost:5000/api',   // Default .NET Core HTTP port
   'https://localhost:7143/api',  // Default .NET Core HTTPS port
   'http://localhost:5200/api',   // Explicitly specified port
@@ -15,14 +18,33 @@ let isTestingEndpoints = false;
 
 const findWorkingApiEndpoint = async (): Promise<string> => {
   if (currentApiUrl) return currentApiUrl;
-  if (isTestingEndpoints) return API_ENDPOINTS[0]; // Prevent recursive testing
+  if (isTestingEndpoints) return AZURE_API_ENDPOINT; // Prevent recursive testing
   
   isTestingEndpoints = true;
   console.log('Testing API endpoints to find a working one...');
   
-  for (const endpoint of API_ENDPOINTS) {
+  // Try Azure endpoint first
+  try {
+    console.log(`Trying Azure endpoint: ${AZURE_API_ENDPOINT}`);
+    const response = await axios.get(`${AZURE_API_ENDPOINT}/Books`, { 
+      params: { pageNumber: 1, pageSize: 1 },
+      timeout: 8000 // Longer timeout for Azure
+    });
+    if (response.status === 200) {
+      console.log(`Connected to Azure backend: ${AZURE_API_ENDPOINT}`);
+      currentApiUrl = AZURE_API_ENDPOINT;
+      isTestingEndpoints = false;
+      return AZURE_API_ENDPOINT;
+    }
+  } catch (error: any) {
+    console.log(`Azure endpoint failed:`, error.message);
+    console.log('Falling back to local endpoints...');
+  }
+  
+  // If Azure fails, try local endpoints as fallback
+  for (const endpoint of FALLBACK_API_ENDPOINTS) {
     try {
-      console.log(`Trying endpoint: ${endpoint}`);
+      console.log(`Trying local endpoint: ${endpoint}`);
       const response = await axios.get(`${endpoint}/Books`, { 
         params: { pageNumber: 1, pageSize: 1 },
         timeout: 5000 // Timeout after 5 seconds
@@ -40,7 +62,7 @@ const findWorkingApiEndpoint = async (): Promise<string> => {
   
   console.error('No working API endpoints found.');
   isTestingEndpoints = false;
-  throw new Error('Cannot connect to the backend API. Please make sure the backend server is running.');
+  throw new Error('Cannot connect to the backend API. Please ensure the backend server is running or check your network connection.');
 };
 
 // Function to get books with pagination and sorting
