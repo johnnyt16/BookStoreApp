@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getBooks, isUsingRealApiData } from '../services/bookService';
+import { getBooks } from '../services/bookService';
 import { Book, PagedBookResult, CartItem, ShoppingCart } from '../types/Book';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -12,7 +12,6 @@ const BookList = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>('title');
   const [sortOrder, setSortOrder] = useState<string>('asc');
-  const [usingMockData, setUsingMockData] = useState<boolean>(true); // Default to true until we confirm real API
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [categories, setCategories] = useState<string[]>(['All']);
   
@@ -48,9 +47,6 @@ const BookList = () => {
       const data = await getBooks(currentPage, pageSize, sortField, sortOrder, categoryFilter);
       setBookData(data);
       setError(null);
-      
-      // Update mock data status based on the API result
-      setUsingMockData(!isUsingRealApiData());
 
       // Extract unique categories from the data if we have all books
       if (!categoryFilter && data.totalCount > 0) {
@@ -71,7 +67,6 @@ const BookList = () => {
       }
       
       setError(errorMessage);
-      setUsingMockData(true);
     } finally {
       setLoading(false);
     }
@@ -418,33 +413,19 @@ const BookList = () => {
         
         {/* Main content - takes 9 columns on medium and larger screens */}
         <div className="col-md-9">
-          <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-            <h2 className="mb-0">
-              {selectedCategory === 'All' || !selectedCategory 
-                ? 'All Books' 
-                : `${selectedCategory} Books`}
-            </h2>
-            
-            {/* Cart button for small screens */}
-            <div className="d-block d-md-none mb-3">
-              <button 
-                className="btn btn-primary position-relative"
-                onClick={() => setShowCart(true)}
-              >
-                <i className="bi bi-cart"></i> View Cart
-                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  {cart.itemCount}
-                </span>
-              </button>
-            </div>
+          <div className="d-flex justify-content-between mb-4">
+            <h2>Book Collection</h2>
+            <button 
+              className="btn btn-primary position-relative"
+              onClick={() => setShowCart(true)}
+              disabled={cart.items.length === 0}
+            >
+              <i className="bi bi-cart3 me-1"></i> Cart
+              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {cart.itemCount}
+              </span>
+            </button>
           </div>
-          
-          {usingMockData ? (
-            <div className="alert alert-info mb-3">
-              <strong>Using sample data:</strong> Backend API connection not detected. 
-              Using local sample data instead of the real database.
-            </div>
-          ) : null}
           
           {error && (
             <div className="alert alert-danger mb-3">
